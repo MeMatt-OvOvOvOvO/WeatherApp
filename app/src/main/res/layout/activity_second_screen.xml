@@ -13,7 +13,7 @@
     </LinearLayout>
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/textViewCityName" android:text="London, GB" android:layout_marginTop="60dp" android:textSize="30dp" android:gravity="center_horizontal"/>
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="110dp">
-        <ImageView android:layout_width="80dp" android:layout_height="80dp" android:src="@drawable/sun" android:id="@+id/imageViewImage" android:maxHeight="20dp" android:maxWidth="20dp" android:layout_weight="1"/>
+        <ImageView android:layout_width="80dp" android:layout_height="80dp" android:src="@drawable/suncloud" android:id="@+id/imageViewImage" android:maxHeight="20dp" android:maxWidth="20dp" android:layout_weight="1"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="25 C" android:id="@+id/textViewTemp" android:textSize="50dp" android:layout_weight="1"/>
     </LinearLayout>
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="few clouds" android:id="@+id/textViewWeather" android:layout_marginTop="180dp" android:textSize="25dp" android:gravity="center_horizontal"/>
