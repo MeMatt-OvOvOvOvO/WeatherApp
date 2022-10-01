@@ -92,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onComplete(@NonNull Task<Location> task) {
                     Location location = task.getResult();
+                    Log.d("TAG", "onComplete: " + location);
                     if (location != null) {
-
                         try {
                             Geocoder geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
                             List<Address> addresses = geocoder.getFromLocation(
