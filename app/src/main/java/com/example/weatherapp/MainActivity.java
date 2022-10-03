@@ -64,10 +64,6 @@ public class MainActivity extends AppCompatActivity {
     public double lat;
     public double lon;
 
-    FusedLocationProviderClient fusedLocationProviderClient;
-
-
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,83 +80,84 @@ public class MainActivity extends AppCompatActivity {
         textViewWindSpeed = findViewById(R.id.textViewWindSpeed);
         buttonGoToSearch = findViewById(R.id.buttonGoToSearch);
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                Log.d("TAG", "onComplete: " + location);
+                if (location != null) {
+                    try {
+                        Geocoder geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
+                        List<Address> addresses = geocoder.getFromLocation(
+                                location.getLatitude(), location.getLongitude(), 1
+                        );
+                        lat = addresses.get(0).getLatitude();
+                        lon = addresses.get(0).getLongitude();
+                        WeatherAPI weatherAPI = RetrofitWeather.getClient().create(WeatherAPI.class);
+                        Call<OpenWeatherMap> call = weatherAPI.getWeatherWithLocation(lat, lon);
+                        call.enqueue(new Callback<OpenWeatherMap>() {
+                            @Override
+                            public void onResponse(Call<OpenWeatherMap> call, Response<OpenWeatherMap> response) {
+                                OpenWeatherMap res = response.body();
+                                nameandcouuntry = res.getName() + ", " + res.getSys().getCountry();
+                                textViewCityName.setText(nameandcouuntry);
 
-            fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                @Override
-                public void onComplete(@NonNull Task<Location> task) {
-                    Location location = task.getResult();
-                    Log.d("TAG", "onComplete: " + location);
-                    if (location != null) {
-                        try {
-                            Geocoder geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
-                            List<Address> addresses = geocoder.getFromLocation(
-                                    location.getLatitude(), location.getLongitude(), 1
-                            );
-                            lat = addresses.get(0).getLatitude();
-                            lon = addresses.get(0).getLongitude();
-                            WeatherAPI weatherAPI = RetrofitWeather.getClient().create(WeatherAPI.class);
-                            Call<OpenWeatherMap> call = weatherAPI.getWeatherWithLocation(lat, lon);
-                            call.enqueue(new Callback<OpenWeatherMap>() {
-                                @Override
-                                public void onResponse(Call<OpenWeatherMap> call, Response<OpenWeatherMap> response) {
-                                    OpenWeatherMap res = response.body();
-                                    nameandcouuntry = res.getName() + ", " + res.getSys().getCountry();
-                                    textViewCityName.setText(nameandcouuntry);
+                                temp = res.getMain().getTemp() + " C";
+                                textViewTemp.setText(temp);
 
-                                    temp = res.getMain().getTemp() + " C";
-                                    textViewTemp.setText(temp);
+                                weatherDesc = res.getWeather().get(0).getDescription();
+                                textViewWeather.setText(weatherDesc);
 
-                                    weatherDesc = res.getWeather().get(0).getDescription();
-                                    textViewWeather.setText(weatherDesc);
-
-                                    if (weatherDesc.equals("broken clouds") || weatherDesc.equals("overcast clouds")) {
-                                        imageViewImage.setImageResource(R.drawable.moreclouds);
-                                    } else if (weatherDesc.equals("scattered clouds")) {
-                                        imageViewImage.setImageResource(R.drawable.onecloud);
-                                    } else if (weatherDesc.equals("sun") || weatherDesc.equals("clear sky")) {
-                                        imageViewImage.setImageResource(R.drawable.sun);
-                                    } else if (weatherDesc.equals("mist") || weatherDesc.equals("fog")) {
-                                        imageViewImage.setImageResource(R.drawable.fog);
-                                    } else if (weatherDesc.equals("few clouds")) {
-                                        imageViewImage.setImageResource(R.drawable.suncloud);
-                                    } else if (weatherDesc.equals("rain") || weatherDesc.equals("light rain") || weatherDesc.equals("moderate rain")) {
-                                        imageViewImage.setImageResource(R.drawable.rain);
-                                    } else {
-                                        imageViewImage.setImageResource(R.drawable.weather);
-                                    }
-
-                                    humidity = ": " + res.getMain().getHumidity() + " %";
-                                    textViewHumidity.setText(humidity);
-
-                                    maxTemp = ": " + res.getMain().getTempMax() + " C";
-                                    textViewMaxTemp.setText(maxTemp);
-
-                                    minTemp = ": " + res.getMain().getTempMin() + " C";
-                                    textViewMinTemp.setText(minTemp);
-
-                                    pressure = ": " + res.getMain().getPressure().toString();
-                                    textViewPressure.setText(pressure);
-
-                                    windSpeed = ": " + res.getWind().getSpeed();
-                                    textViewWindSpeed.setText(windSpeed);
+                                if (weatherDesc.equals("broken clouds") || weatherDesc.equals("overcast clouds")) {
+                                    imageViewImage.setImageResource(R.drawable.moreclouds);
+                                } else if (weatherDesc.equals("scattered clouds")) {
+                                    imageViewImage.setImageResource(R.drawable.onecloud);
+                                } else if (weatherDesc.equals("sun") || weatherDesc.equals("clear sky")) {
+                                    imageViewImage.setImageResource(R.drawable.sun);
+                                } else if (weatherDesc.equals("mist") || weatherDesc.equals("fog")) {
+                                    imageViewImage.setImageResource(R.drawable.fog);
+                                } else if (weatherDesc.equals("few clouds")) {
+                                    imageViewImage.setImageResource(R.drawable.suncloud);
+                                } else if (weatherDesc.equals("rain") || weatherDesc.equals("light rain") || weatherDesc.equals("moderate rain")) {
+                                    imageViewImage.setImageResource(R.drawable.rain);
+                                } else {
+                                    imageViewImage.setImageResource(R.drawable.weather);
                                 }
 
-                                @Override
-                                public void onFailure(Call<OpenWeatherMap> call, Throwable t) {
+                                humidity = ": " + res.getMain().getHumidity() + " %";
+                                textViewHumidity.setText(humidity);
 
-                                }
-                            });
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                                maxTemp = ": " + res.getMain().getTempMax() + " C";
+                                textViewMaxTemp.setText(maxTemp);
+
+                                minTemp = ": " + res.getMain().getTempMin() + " C";
+                                textViewMinTemp.setText(minTemp);
+
+                                pressure = ": " + res.getMain().getPressure().toString();
+                                textViewPressure.setText(pressure);
+
+                                windSpeed = ": " + res.getWind().getSpeed();
+                                textViewWindSpeed.setText(windSpeed);
+                            }
+
+                            @Override
+                            public void onFailure(Call<OpenWeatherMap> call, Throwable t) {
+
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
-            });
+            }
+        };
+
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            Log.d("TAG", "onCreate: not granted");
         } else {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,500,50,locationListener);
         }
 
 
